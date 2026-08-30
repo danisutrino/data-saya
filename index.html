@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dani Sutrisno — portofolio.dani</title>
+<meta name="description" content="Portofolio Dani Sutrisno, siswa SMKN 1 Semparuk jurusan Rekayasa Perangkat Lunak.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0a0f1e;
+    --panel: #121b32;
+    --panel-2: #16213f;
+    --line: #24304f;
+    --gold: #ffc857;
+    --coral: #f2665c;
+    --text: #eef1f8;
+    --muted: #8a93b3;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* faint dotted grid backdrop, like an editor canvas */
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    background-image: radial-gradient(circle, #1c2748 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity:.5;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{ color: var(--gold); text-decoration: none; }
+  a:hover{ text-decoration: underline; }
+
+  :focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  ::selection{ background: var(--gold); color:#1a1200; }
+
+  /* ---------- top chrome bar ---------- */
+  .chrome{
+    position: sticky; top:0; z-index: 50;
+    display:flex; align-items:center; gap:10px;
+    padding: 12px 20px;
+    background: rgba(10,15,30,.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{ background:#f25c54; } .dot.y{ background:#ffc857; } .dot.g{ background:#5fd0a3; }
+  .chrome .path{
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+    margin-left: 10px; overflow-x:auto; white-space:nowrap;
+  }
+  .chrome .path b{ color: var(--text); font-weight:600; }
+
+  /* ---------- layout: sidebar + main ---------- */
+  .app{
+    position: relative; z-index:1;
+    display:grid;
+    grid-template-columns: 230px 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+  @media (max-width: 860px){
+    .app{ grid-template-columns: 1fr; }
+  }
+
+  /* file explorer sidebar */
+  .explorer{
+    border-right: 1px solid var(--line);
+    padding: 28px 14px;
+    position: sticky; top: 49px;
+    align-self: start;
+    height: calc(100vh - 49px);
+    font-family: var(--mono);
+  }
+  @media (max-width: 860px){
+    .explorer{
+      position: sticky; top:49px; height:auto;
+      display:flex; overflow-x:auto; gap:4px;
+      border-right:none; border-bottom:1px solid var(--line);
+      padding: 12px 14px;
+      background: var(--ink);
+    }
+  }
+  .explorer-label{
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); padding: 0 10px 10px;
+  }
+  @media (max-width:860px){ .explorer-label{ display:none; } }
+
+  .nav-item{
+    display:flex; align-items:center; gap:8px;
+    padding: 8px 10px; border-radius: 6px;
+    font-size: 13px; color: var(--muted);
+    cursor:pointer; white-space:nowrap;
+    border-left: 2px solid transparent;
+    transition: background .15s, color .15s;
+  }
+  .nav-item:hover{ background: var(--panel); color: var(--text); }
+  .nav-item.active{
+    background: var(--panel-2); color: var(--gold);
+    border-left: 2px solid var(--gold);
+  }
+  .nav-item .ext{ color: var(--coral); opacity:.8; }
+  .nav-item.active .ext{ color: var(--gold); }
+
+  /* ---------- main content ---------- */
+  main{ padding: 0 0 80px; min-width:0; }
+
+  .tabbar{
+    display:flex; gap:2px; border-bottom: 1px solid var(--line);
+    padding: 0 24px; font-family: var(--mono); font-size:12.5px;
+    color: var(--muted); overflow-x:auto;
+  }
+  .tabbar span{ padding: 12px 14px; }
+  .tabbar span.on{ color: var(--text); border-bottom: 2px solid var(--gold); }
+
+  section{
+    padding: 56px 28px 8px;
+    border-bottom: 1px dashed var(--line);
+    scroll-margin-top: 60px;
+  }
+  @media (max-width:600px){ section{ padding: 44px 18px 8px; } }
+
+  .gutter-line{
+    display:flex; gap: 18px; align-items: flex-start;
+  }
+  .lno{
+    font-family: var(--mono); font-size: 12.5px; color: #3a4568;
+    user-select:none; padding-top: 4px; min-width: 20px; text-align:right;
+  }
+  .code-comment{
+    font-family: var(--mono); color: #5fd0a3; font-size: 13.5px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{ padding-top: 42px; }
+  .hero-grid{
+    display:grid; grid-template-columns: 1fr auto; gap: 40px; align-items:center;
+  }
+  @media (max-width:700px){ .hero-grid{ grid-template-columns:1fr; } }
+
+  .hero h1{
+    font-family: var(--mono);
+    font-size: clamp(28px, 5vw, 46px);
+    margin: 6px 0 4px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .caret{
+    display:inline-block; width:3px; height: 0.9em; background: var(--gold);
+    margin-left: 4px; transform: translateY(2px);
+    animation: blink 1s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .caret{ animation:none; } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .role-line{
+    font-family: var(--mono); font-size: 14px; color: var(--muted);
+  }
+  .role-line b{ color: var(--gold); font-weight:600; }
+
+  .tagline{ margin-top:18px; max-width: 46ch; color: var(--muted); font-size: 15.5px; }
+
+  .badge-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 22px; }
+  .badge{
+    font-family: var(--mono); font-size: 12px;
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 5px;
+    color: var(--muted);
+  }
+
+  .portrait-wrap{
+    position:relative; width: 190px; height: 232px; justify-self:end;
+  }
+  @media (max-width:700px){ .portrait-wrap{ justify-self:start; } }
+  .portrait-wrap img{
+    width:100%; height:100%; object-fit:cover; border-radius: 10px;
+    border: 1px solid var(--line);
+    filter: saturate(0.92) contrast(1.02);
+  }
+  .portrait-frame{
+    position:absolute; top:10px; left:10px; width:100%; height:100%;
+    border: 1px dashed var(--gold); border-radius:10px; opacity:.55;
+    pointer-events:none;
+  }
+  .portrait-tag{
+    position:absolute; bottom:-14px; left:10px;
+    background: var(--gold); color:#1a1200;
+    font-family: var(--mono); font-size:10.5px; font-weight:700;
+    padding: 3px 8px; border-radius: 4px;
+  }
+
+  /* ---------- headings ---------- */
+  h2.file-title{
+    font-family: var(--mono); font-size: 14px; color: var(--muted);
+    margin: 0 0 26px; display:flex; align-items:center; gap:8px;
+  }
+  h2.file-title::before{ content: "▸"; color: var(--gold); }
+
+  .prose p{ color: #cbd2e6; font-size: 15.5px; max-width: 62ch; margin: 0 0 16px; }
+  .prose strong{ color: var(--text); }
+
+  /* pencil-sketch squiggle accent, nod to drawing hobby */
+  .sketch{
+    position:absolute; opacity:.35; pointer-events:none;
+  }
+
+  /* ---------- skills / json block ---------- */
+  .json-card{
+    background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 22px 24px; font-family: var(--mono); font-size: 13.5px;
+    max-width: 640px; overflow-x:auto;
+  }
+  .json-card .k{ color: #7dd3fc; }
+  .json-card .s{ color: #b7f5c9; }
+  .json-card .punct{ color: #56618c; }
+  .json-card .arr{ color: var(--gold); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .chip{
+    display:flex; align-items:center; gap:8px;
+    background: var(--panel-2); border:1px solid var(--line);
+    padding:9px 14px; border-radius: 999px; font-size: 13.5px; color: var(--text);
+  }
+  .chip .dotchip{ width:6px; height:6px; border-radius:50%; background: var(--gold); }
+
+  /* ---------- hopes callout ---------- */
+  .callout{
+    border-left: 3px solid var(--coral);
+    background: var(--panel);
+    padding: 18px 22px; border-radius: 0 8px 8px 0;
+    max-width: 62ch; color:#d7dcee; font-size:15px;
+  }
+  .callout .tag{
+    display:block; font-family: var(--mono); font-size:11px; color: var(--coral);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px;
+  }
+
+  /* ---------- contact terminal ---------- */
+  .terminal{
+    background: #0d1426; border:1px solid var(--line); border-radius: 10px;
+    max-width: 620px; overflow:hidden;
+  }
+  .terminal-bar{
+    display:flex; gap:7px; padding:10px 14px; border-bottom:1px solid var(--line);
+  }
+  .terminal-body{ padding: 18px 22px 22px; font-family: var(--mono); font-size: 13.5px; }
+  .terminal-body .ln{ margin-bottom: 12px; display:flex; gap:10px; flex-wrap:wrap; }
+  .terminal-body .prompt{ color: #5fd0a3; }
+  .terminal-body .cmd{ color: var(--text); }
+  .terminal-body .out{ color: var(--muted); margin-left: 22px; }
+  .terminal-body a.out-link{ color: var(--gold); }
+
+  footer{
+    padding: 34px 28px 60px; text-align:center;
+    font-family: var(--mono); font-size:12px; color: #3a4568;
+  }
+
+  .reveal{
+    opacity:0; transform: translateY(14px);
+    transition: opacity .55s ease, transform .55s ease;
+  }
+  .reveal.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+  <div class="path"><b>dani-sutrisno</b> / portofolio — SMKN 1 Semparuk · XII RPL 1</div>
+</div>
+
+<div class="app">
+  <nav class="explorer" id="explorer">
+    <div class="explorer-label">Explorer</div>
+    <div class="nav-item" data-target="profil">📄 profil<span class="ext">.dani</span></div>
+    <div class="nav-item" data-target="tentang">📄 tentang<span class="ext">.md</span></div>
+    <div class="nav-item" data-target="keahlian">📄 keahlian<span class="ext">.json</span></div>
+    <div class="nav-item" data-target="harapan">📄 harapan<span class="ext">.txt</span></div>
+    <div class="nav-item" data-target="kontak">📄 kontak<span class="ext">.sh</span></div>
+  </nav>
+
+  <main>
+    <div class="tabbar" id="tabbar">
+      <span data-tab="profil" class="on">profil.dani</span>
+      <span data-tab="tentang">tentang.md</span>
+      <span data-tab="keahlian">keahlian.json</span>
+      <span data-tab="harapan">harapan.txt</span>
+      <span data-tab="kontak">kontak.sh</span>
+    </div>
+
+    <!-- HERO / PROFIL -->
+    <section id="profil" class="hero reveal">
+      <div class="code-comment">// profil.dani — dibuka pertama kali</div>
+      <div class="hero-grid" style="margin-top:18px;">
+        <div>
+          <div class="role-line">const siswa = <b>"XII RPL 1"</b>;</div>
+          <h1>Dani Sutrisno<span class="caret"></span></h1>
+          <div class="role-line">SMKN 1 Semparuk — Rekayasa Perangkat Lunak</div>
+          <p class="tagline">18 tahun, asal Kalimantan Barat. Belajar merangkai kode di sekolah, dan merangkai garis di atas kertas saat senggang — dua kebiasaan yang sama-sama dimulai dari coretan kecil.</p>
+          <div class="badge-row">
+            <span class="badge">📍 Sambas, Kalbar</span>
+            <span class="badge">🎓 Kelas XII</span>
+            <span class="badge">✏️ Hobi menggambar</span>
+          </div>
+        </div>
+        <div class="portrait-wrap">
+          <div class="portrait-frame"></div>
+          <img src="dani.jpg" alt="Foto Dani Sutrisno mengenakan setelan formal">
+          <span class="portrait-tag">dani.jpg</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TENTANG -->
+    <section id="tentang" class="reveal">
+      <h2 class="file-title">tentang.md</h2>
+      <div class="gutter-line">
+        <div class="lno">01</div>
+        <div class="prose">
+          <p>Perkenalkan, saya <strong>Dani Sutrisno</strong>, lahir dan besar di Desa Seburing, Kecamatan Semparuk, Kabupaten Sambas, Kalimantan Barat. Saat ini saya duduk di kelas XII jurusan Rekayasa Perangkat Lunak, SMKN 1 Semparuk.</p>
+          <p>Saya orangnya cenderung pendiam di awal, tapi jadi lebih terbuka dan asik saat sudah dekat dengan seseorang. Di luar jam sekolah, saya suka menggambar dan mencoba hal-hal baru yang menantang — bagi saya, setiap tantangan adalah kesempatan untuk belajar.</p>
+          <p>Di sekolah, saya tertarik mendalami dunia teknologi dan pemrograman, dan berusaha terus menambah kemampuan yang bisa berguna untuk masa depan. Saya percaya <strong>kerja keras, kedisiplinan, dan kemauan untuk terus belajar</strong> adalah kunci meraih kesuksesan.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KEAHLIAN -->
+    <section id="keahlian" class="reveal">
+      <h2 class="file-title">keahlian.json</h2>
+      <div class="json-card"><span class="punct">{</span><br>
+&nbsp;&nbsp;<span class="k">"jurusan"</span><span class="punct">:</span> <span class="s">"Rekayasa Perangkat Lunak"</span><span class="punct">,</span><br>
+&nbsp;&nbsp;<span class="k">"minat"</span><span class="punct">:</span> <span class="punct">[</span><span class="arr">"pemrograman"</span><span class="punct">,</span> <span class="arr">"teknologi"</span><span class="punct">,</span> <span class="arr">"menggambar"</span><span class="punct">]</span><span class="punct">,</span><br>
+&nbsp;&nbsp;<span class="k">"nilai_yang_dipegang"</span><span class="punct">:</span> <span class="punct">[</span><span class="arr">"kerja keras"</span><span class="punct">,</span> <span class="arr">"disiplin"</span><span class="punct">,</span> <span class="arr">"terus belajar"</span><span class="punct">]</span><span class="punct">,</span><br>
+&nbsp;&nbsp;<span class="k">"kepribadian"</span><span class="punct">:</span> <span class="s">"pendiam di awal, terbuka saat sudah dekat"</span><br>
+<span class="punct">}</span></div>
+      <div class="chip-row">
+        <div class="chip"><span class="dotchip"></span> Suka tantangan baru</div>
+        <div class="chip"><span class="dotchip"></span> Belajar teknologi & pemrograman</div>
+        <div class="chip"><span class="dotchip"></span> Menggambar di waktu luang</div>
+      </div>
+    </section>
+
+    <!-- HARAPAN -->
+    <section id="harapan" class="reveal">
+      <h2 class="file-title">harapan.txt</h2>
+      <div class="callout">
+        <span class="tag">cita-cita</span>
+        Saya tidak terpaku pada satu pekerjaan tertentu — bagi saya, pekerjaan apa pun bisa jadi pilihan baik selama memberi penghasilan cukup, bisa membantu keluarga, dan menyisakan ruang untuk menabung demi masa depan yang lebih baik. Harapan saya sederhana: menjadi pribadi yang sukses dan mandiri secara finansial, terus berkembang, dan bermanfaat bagi keluarga, masyarakat, serta lingkungan sekitar.
+      </div>
+    </section>
+
+    <!-- KONTAK -->
+    <section id="kontak" class="reveal">
+      <h2 class="file-title">kontak.sh</h2>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        </div>
+        <div class="terminal-body">
+          <div class="ln"><span class="prompt">$</span><span class="cmd">open --email</span></div>
+          <div class="ln out"><a class="out-link" href="mailto:daniisutrisnoo87@gmail.com">daniisutrisnoo87@gmail.com</a></div>
+
+          <div class="ln"><span class="prompt">$</span><span class="cmd">open --whatsapp</span></div>
+          <div class="ln out"><a class="out-link" href="https://wa.me/6285165159054" target="_blank" rel="noopener">wa.me/6285165159054</a></div>
+
+          <div class="ln"><span class="prompt">$</span><span class="cmd">open --instagram</span></div>
+          <div class="ln out"><a class="out-link" href="https://www.instagram.com/d4nn_2008" target="_blank" rel="noopener">instagram.com/d4nn_2008</a></div>
+
+          <div class="ln"><span class="prompt">$</span><span class="cmd">open --tiktok</span></div>
+          <div class="ln out"><a class="out-link" href="https://www.tiktok.com/@danisutrisno00" target="_blank" rel="noopener">tiktok.com/@danisutrisno00</a></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>© 2026 Dani Sutrisno — dibuat untuk tugas sekolah, di-hosting via GitHub Pages</footer>
+  </main>
+</div>
+
+<script>
+  // scrollspy: highlight active file in explorer + tabbar as user scrolls
+  const sections = document.querySelectorAll('main section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+  const tabItems = document.querySelectorAll('.tabbar span');
+
+  const setActive = (id) => {
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.target === id));
+    tabItems.forEach(t => t.classList.toggle('on', t.dataset.tab === id));
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) setActive(e.target.id);
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+  sections.forEach(s => io.observe(s));
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      document.getElementById(item.dataset.target).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // reveal on scroll
+  const ro = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+</script>
+</body>
+</html>
